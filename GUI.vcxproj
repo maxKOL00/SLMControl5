@@ -44,7 +44,7 @@
     <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
   </Target>
   <ImportGroup Label="ExtensionSettings">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 10.2.props" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.0.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
@@ -153,6 +153,7 @@
       <WarningLevel>Level3</WarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ProgramDataBaseFileName>$(IntDir)vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalDependencies>shell32.lib;VimbaC.lib;VimbaCPP.lib;cudart.lib;cuda.lib;cufft.lib;glew64.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -192,6 +193,7 @@
     </CudaCompile>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
+      <AdditionalOptions>--std=c++17 %(AdditionalOptions)</AdditionalOptions>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -201,6 +203,7 @@
     <ClCompile Include="..\..\srcCopy\Parameters.cpp" />
     <ClCompile Include="..\..\srcCopy\TweezerArray.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="mainThread.cpp" />
     <ClCompile Include="mainwindow.cpp" />
     <ClCompile Include="statusBox.cpp" />
   </ItemGroup>
@@ -233,6 +236,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\incCopy\basic_fileIO.h" />
     <ClInclude Include="..\..\incCopy\cuda_utils.cuh" />
+    <ClInclude Include="errorMessage.h" />
     <ClInclude Include="statusBox.h" />
     <CudaCompile Include="..\..\incCopy\CGHAlgorithm.cuh" />
     <ClInclude Include="..\..\incCopy\Display.h" />
@@ -243,7 +247,6 @@
     <CudaCompile Include="..\..\incCopy\Patch.cuh" />
     <ClInclude Include="..\..\incCopy\Tweezer.h" />
     <ClInclude Include="..\..\incCopy\TweezerArray.h" />
-    <ClInclude Include="Constants.h" />
     <CudaCompile Include="..\..\srcCopy\CGHAlgorithm.cu" />
     <CudaCompile Include="..\..\srcCopy\cuda_utils.cu" />
     <CudaCompile Include="..\..\srcCopy\ImageProcessing.cu" />
@@ -259,6 +262,6 @@
     <Import Project="$(QtMsBuild)\qt.targets" />
   </ImportGroup>
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 10.2.targets" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.0.targets" />
   </ImportGroup>
 </Project>

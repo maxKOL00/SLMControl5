@@ -61,6 +61,9 @@
     <ClCompile Include="statusBox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mainThread.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="mainwindow.h">
@@ -82,9 +85,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mainThread.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Constants.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\incCopy\basic_fileIO.h">
@@ -109,6 +109,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\incCopy\cuda_utils.cuh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="errorMessage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -142,8 +145,6 @@
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="config.json">
-      <Filter>Source Files</Filter>
-    </None>
+    <None Include="config.json" />
   </ItemGroup>
 </Project>
