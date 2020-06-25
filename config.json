@@ -58,7 +58,7 @@
     "WEIGHTING_PARAMETER": 1.0,
     "CAMERA_FEEDBACK_ENABLED": false,
     "LAYER_SEPARATION_UM": 50000.0,
-    "OUTPUT_FOLDER": "data/temp",
+    "OUTPUT_FOLDER": "data",
     "SAVE_DATA": true,
     "RANDOM_SEED": 95843670349586,
     "AXIAL_SCAN": {

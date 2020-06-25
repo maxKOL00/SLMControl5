@@ -169,11 +169,11 @@ int mainThread::run_thread() {
         if (save_data) {
 
             cgh.save_output_intensity_distribution_max(//max means Max's modification
-                "displayImages/theory_output.bmp", tweezer_array
+                output_folder + "theory_output.bmp", tweezer_array
             );
 
             cgh.save_input_phase_distribution(
-                output_folder + "phasemap_before_correction.bmp"
+                output_folder + "phase_map.bmp"//saves square dimensions
             );
 
             basic_fileIO::save_one_column_data(
@@ -221,7 +221,7 @@ int mainThread::run_thread() {
         cudaFree(lut_ptr);
 
         //display_phasemap(slm_image_ptr);
-        basic_fileIO::save_as_bmp("displayImages\\phase_map.bmp", slm_image_ptr, params.get_slm_px_x(), params.get_slm_px_y());
+        basic_fileIO::save_as_bmp(output_folder + "phase_map.bmp", slm_image_ptr, params.get_slm_px_x(), params.get_slm_px_y());
 
         cudaFree(slm_image_ptr);
 

@@ -10,14 +10,14 @@
 class configSystem {
 
 	public:
-        configSystem::configSystem(QWidget* parent);
+        configSystem::configSystem();
+        void initialize(QWidget* parent);
         configSystem::~configSystem();
-        QPushButton* getSave() { return save; }
-        QPushButton* getSaveAs() { return saveAs; }
-        QPushButton* getNew() { return New; }
-        /*void NEW();
+        QPushButton* getGTA() { return GTA; }
         void SAVE();
-        void SAVEAS();*/
+        void SAVEAS();
+        void NEW();
+        //void SAVEAS();
         void resize(QWidget* parent);
 	private:
 

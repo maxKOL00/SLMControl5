@@ -1,9 +1,10 @@
 #pragma once
 #include <qplaintextedit.h>
 
-class statusBox {
+class statusBox : public QObject {
 	public:
-		statusBox::statusBox(QWidget* parent);
+		statusBox::statusBox() {}
+		void initialize(QWidget* parent);
 		void appendMessage(const QString& text);
 		void appendColorMessage(const QString& text, std::string color);
 		statusBox::~statusBox();

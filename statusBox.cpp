@@ -2,7 +2,7 @@
 #include "qscrollbar.h"
 #include "qapplication.h"
 
-statusBox::statusBox(QWidget* parent) {
+void statusBox::initialize(QWidget* parent) {
     // set size and location of the button
     edit = new QPlainTextEdit(parent);
 

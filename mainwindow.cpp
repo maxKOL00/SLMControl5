@@ -4,22 +4,18 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
-    ,edit(this)
     ,thread(&edit)
-    ,form(this)
 {
    // edit.appendMessage("Initialized Window");
     ui->setupUi(this);
+    form.initialize(this);
+    edit.initialize(this);
     // Create the button, make "this" the parent
-    m_button = new QPushButton("My Button", this);
+
     clearStatus = new QPushButton("Clear", this);
 
-    // set size and location of the button
-    m_button->setGeometry(QRect(QPoint(100, 100),
-                          QSize(200, 50)));
 
-
-    theory_label = new QLabel("",this);
+    theory_label = new QLabel("",this);//just to color background
     theory_text = new QLabel("Theory Output:", this);
     phase_text = new QLabel("SLM Profile:", this); 
     statusText = new QLabel("Status Window", this);
@@ -31,13 +27,9 @@ MainWindow::MainWindow(QWidget *parent)
     resize();
     
                           // Connect button signal to appropriate slot
-    connect(m_button, SIGNAL(released()), this, SLOT(handleButton()));
+    connect(form.getGTA(), SIGNAL(released()), this, SLOT(handleButton()));
     connect(clearStatus, &QPushButton::clicked, this, &MainWindow::handleClearButton);
     //use this syntax in future ^^
-
-    connect(form.getSave(), &QPushButton::clicked, this, &MainWindow::SAVE);
-    connect(form.getSaveAs(), &QPushButton::clicked, this, &MainWindow::SAVEAS);
-    connect(form.getNew(), &QPushButton::clicked, this, &MainWindow::NEW);
 }
 
 
@@ -52,7 +44,6 @@ MainWindow::~MainWindow()
 {
     delete ui;
     delete phase_label;
-    delete m_button;
     delete theory_label;
     delete theory_text;
     delete phase_text;
@@ -80,10 +71,10 @@ void MainWindow::resize() {
 }
 
 void MainWindow::setImages() {
-    if (!phase.load("displayImages/phase_map.bmp")) {
+    if (!phase.load("data/phase_map.bmp")) {
         errBox("Could not load image for diplay", __FILE__, __LINE__);
     }
-    if (!theory.load("displayImages/theory_output.bmp")) {
+    if (!theory.load("data/theory_output.bmp")) {
         errBox("Could not load image for diplay", __FILE__, __LINE__);
     }
     theory = theory.mirrored(false, true);//flip vetrically
@@ -107,13 +98,3 @@ void MainWindow::handleClearButton() {
     edit.clear();
 }
 
-void MainWindow::SAVE() {
-
-}
-
-void MainWindow::SAVEAS() {
-
-}
-void MainWindow::NEW() {
-
-}

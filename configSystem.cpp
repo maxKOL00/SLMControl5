@@ -1,9 +1,16 @@
 #include "configSystem.h"
+#include <qfiledialog.h>
 
-configSystem::configSystem(QWidget* parent)
-{
+configSystem::configSystem()
+{}
 
+void configSystem::initialize(QWidget* parent) {
     configSelection = new QComboBox(parent);
+    QDir path("configFiles");
+    QStringList files = path.entryList(QDir::Files);
+    configSelection->addItems(files);
+    configSelection->show();//get the files in the config directory.
+
     save = new QPushButton("Save", parent);
     New = new QPushButton("New", parent);
     saveAs = new QPushButton("Save As", parent);
@@ -51,7 +58,15 @@ configSystem::configSystem(QWidget* parent)
     A1 = new QLabel("Range Lower UM: ", parent); AT1 = new QTextEdit(parent);
     A2 = new QLabel("Range Upper UM: ", parent); AT2 = new QTextEdit(parent);
     A3 = new QLabel("Scan Stepsize UM: ", parent); AT3 = new QTextEdit(parent);
+
+
+    QObject::connect(save, &QPushButton::released, [this]() {SAVE(); });
+    QObject::connect(saveAs, &QPushButton::released, [this]() {SAVEAS(); });
+    QObject::connect(New, &QPushButton::released, [this]() {NEW(); });
+
 }
+
+
 
 void configSystem::resize(QWidget* parent) {
     QSize size = parent->size();
@@ -269,3 +284,13 @@ configSystem::~configSystem() {
     delete TT9; delete TT10; delete TT11; delete TT12; delete TT13; delete TT14; delete TT15; delete TT16;
 }
 
+void configSystem::SAVE() {
+    
+}
+
+void configSystem::SAVEAS() {
+
+}
+void configSystem::NEW() {
+
+}

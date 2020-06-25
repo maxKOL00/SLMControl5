@@ -25,9 +25,7 @@ public:
     ~MainWindow();
     void handleClearButton();
     void setImages();
-    void SAVE();
-    void SAVEAS();
-    void NEW();
+;
 
 private slots:
     void handleButton();
@@ -38,7 +36,6 @@ private:
     configSystem form;
     //test test1;
     mainThread thread;
-    QPushButton* m_button;
     QImage phase, theory;
     QLabel *phase_label, *theory_label, *phase_text, *theory_text;
     QLabel *statusText;

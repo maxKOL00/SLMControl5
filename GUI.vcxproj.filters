@@ -64,6 +64,9 @@
     <ClCompile Include="mainThread.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="configSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="mainwindow.h">
@@ -112,6 +115,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="errorMessage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="configSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -202,6 +202,7 @@
     <ClCompile Include="..\..\srcCopy\ImageCapture.cpp" />
     <ClCompile Include="..\..\srcCopy\Parameters.cpp" />
     <ClCompile Include="..\..\srcCopy\TweezerArray.cpp" />
+    <ClCompile Include="configSystem.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mainThread.cpp" />
     <ClCompile Include="mainwindow.cpp" />
@@ -236,6 +237,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\incCopy\basic_fileIO.h" />
     <ClInclude Include="..\..\incCopy\cuda_utils.cuh" />
+    <ClInclude Include="configSystem.h" />
     <ClInclude Include="errorMessage.h" />
     <ClInclude Include="statusBox.h" />
     <CudaCompile Include="..\..\incCopy\CGHAlgorithm.cuh" />
