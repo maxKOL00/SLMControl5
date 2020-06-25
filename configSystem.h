@@ -5,12 +5,15 @@
 #include <qcombobox.h>
 #include <qtextedit.h>
 #include <qcheckbox.h>
+#include <filesystem>
+#include "nlohmann/json.hpp"
+#include "statusBox.h"
 
 
 class configSystem {
 
 	public:
-        configSystem::configSystem();
+        configSystem::configSystem(statusBox* box);
         void initialize(QWidget* parent);
         configSystem::~configSystem();
         QPushButton* getGTA() { return GTA; }
@@ -20,11 +23,47 @@ class configSystem {
         //void SAVEAS();
         void resize(QWidget* parent);
 	private:
-
+        statusBox* editF;
+        void makeNewFile(std::string filename);
+        void updateConfigSelector();
+        double getWavelengthUM();
+        int getFocalLenghtMM();
+        double getWaistUM();
+        double getBeamWaistX();
+        double getBeamWaistY();
+        int getLUTPatchSizeX();
+        int getLUTPatchSizeY();
+        int getHorizontalOffset();
+        int getFrameRate();
+        int getPatchSizeX();
+        int getPatchSizeY();
+        int getGratingMax();
+        int getGratingPeriod();
+        int getGratingDiff();
+        int getNumTrapsX();
+        int getNumTrapsY();
+        double getSpacingX();
+        double getSpacingY();
+        double getRadialShiftX();
+        double getRadialShiftY();
+        double getAxialShift();
+        int getPaddedPixels();
+        int getMaxItterations();
+        int getMaxCameraItterations();
+        int getFixedPhaseItterations();
+        double getFixedPhaseNonuniformity();
+        double getMaxNonuniformityPercent();
+        double getMaxCameraNonuniformityPercent();
+        double getWeight();
+        bool getCameraFeedback();
+        int getAxialScanLower();
+        int getAxialScanUpper();
+        int getAxialScanStepSize();
         QPushButton* save;
         QPushButton* saveAs;
         QPushButton* New;
         QComboBox* configSelection;
+        QComboBox* arrayType;
         QLabel* saveInfo, * OpticalText, * CalibrationText, * TweezerText, * AxialText;
         QLabel* O1, * O2, * O3, * O4, * O5;
         QTextEdit* OT1, * OT2, * OT3, * OT4, * OT5; 
@@ -37,4 +76,5 @@ class configSystem {
         QTextEdit* AT1, * AT2, * AT3;
         QPushButton *GTA;
         QPushButton *Calibrate;
+        QWidget* Parent;
 };

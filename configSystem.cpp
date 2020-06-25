@@ -1,15 +1,34 @@
 #include "configSystem.h"
 #include <qfiledialog.h>
+#include <fstream>
 
-configSystem::configSystem()
-{}
 
+
+configSystem::configSystem(statusBox *box)
+{
+    editF = box;
+}
+
+void configSystem::updateConfigSelector() {
+    QDir path("configFiles");
+    QStringList files = path.entryList(QDir::Files);
+    configSelection->addItems(files);
+    configSelection->show();//get the files in the config directory.
+}
 void configSystem::initialize(QWidget* parent) {
     configSelection = new QComboBox(parent);
     QDir path("configFiles");
     QStringList files = path.entryList(QDir::Files);
     configSelection->addItems(files);
     configSelection->show();//get the files in the config directory.
+
+    arrayType = new QComboBox(parent);
+    arrayType->addItem("RECTANGULAR");
+    arrayType->addItem("TRIANGULAR");
+    arrayType->addItem("HONEYCOMB");
+    arrayType->addItem("KAGOME");
+    arrayType->addItem("TEST");
+    arrayType->show();
 
     save = new QPushButton("Save", parent);
     New = new QPushButton("New", parent);
@@ -63,9 +82,367 @@ void configSystem::initialize(QWidget* parent) {
     QObject::connect(save, &QPushButton::released, [this]() {SAVE(); });
     QObject::connect(saveAs, &QPushButton::released, [this]() {SAVEAS(); });
     QObject::connect(New, &QPushButton::released, [this]() {NEW(); });
-
+    Parent = parent;
 }
 
+double configSystem::getWavelengthUM() {
+    bool ok;
+    double val = OT1->toPlainText().toDouble(&ok);
+    if (val < 0.1 || val > 1 || !ok) {
+        editF->appendColorMessage(" wavelength not physical. Using default 0.850", "red");
+        return 0.850;
+    }
+    else {
+        return val;
+    }
+}
+int configSystem::getFocalLenghtMM() {
+    bool ok;
+    int val = OT2->toPlainText().toInt(&ok);
+    if (val < 1|| val > 2000 || !ok) {
+        editF->appendColorMessage("Focal length not physical. Using default 180", "red");
+        return 180;
+    }
+    else {
+        return val;
+    }
+}
+double configSystem::getWaistUM() {
+    bool ok;
+    double val = OT3->toPlainText().toDouble(&ok);
+    if (val < 0.0 || !ok) {
+        editF->appendColorMessage("Waist not physical. Using default 16.5", "red");
+        return 16.5;
+    }
+    else {
+        return val;
+    }
+}
+double configSystem::getBeamWaistX() {
+    bool ok;
+    double val = OT4->toPlainText().toDouble(&ok);
+    if (val < 0.0 || !ok) {
+        editF->appendColorMessage("Beam Waist not physical. Using default 15", "red");
+        return 15;
+    }
+    else {
+        return val;
+    }
+}
+double configSystem::getBeamWaistY() {
+    bool ok;
+    double val = OT5->toPlainText().toDouble(&ok);
+    if (val < 0.0 || !ok) {
+        editF->appendColorMessage("Beam Waist not physical. Using default 15", "red");
+        return 15;
+    }
+    else {
+        return val;
+    }
+}
+int configSystem::getLUTPatchSizeX() {
+    bool ok;
+    int val = CT1->toPlainText().toInt(&ok);
+    if (val < 1 || val > 3000 || !ok) {
+        editF->appendColorMessage("Invalid LUT patch size px #. Using default 480", "red");
+        return 480;
+    }
+    else {
+        return val;
+    }
+}
+int configSystem::getLUTPatchSizeY() {
+    bool ok;
+    int val = CT2->toPlainText().toInt(&ok);
+    if (val < 1 || val > 3000 || !ok) {
+        editF->appendColorMessage("Invalid LUT patch size Y px #. Using default 288", "red");
+        return 288;
+    }
+    else {
+        return val;
+    }
+}
+int configSystem::getHorizontalOffset() {
+    bool ok;
+    int val = CT3->toPlainText().toInt(&ok);
+    if (!ok) {
+        editF->appendColorMessage("Invalid Horizontal Offset. Using default 384", "red");
+        return 384;
+    }
+    else {
+        return val;
+    }
+}
+int configSystem::getFrameRate() {
+    bool ok;
+    int val = CT4->toPlainText().toInt(&ok);
+    if (val < 0 || !ok) {
+        editF->appendColorMessage("Invalid Frame Rate. Using default 5", "red");
+        return 5;
+    }
+    else {
+        return val;
+    }
+}
+int configSystem::getGratingMax() {
+    bool ok;
+    int val = CT5->toPlainText().toInt(&ok);
+    if (val < 1 || !ok) {
+        editF->appendColorMessage("Invalid Max Grating. Using default 255", "red");
+        return 255;
+    }
+    else {
+        return val;
+    }
+}
+int configSystem::getGratingPeriod() {
+    bool ok;
+    int val = CT6->toPlainText().toInt(&ok);
+    if (val < 1 || !ok) {
+        editF->appendColorMessage("Invalid Grating Period. Using default 4", "red");
+        return 4;
+    }
+    else {
+        return val;
+    }
+}
+int configSystem::getPatchSizeX() {
+    bool ok;
+    int val = CT7->toPlainText().toInt(&ok);
+    if (val < 0 || val > 3000 || !ok) {
+        editF->appendColorMessage("Invalid patch size px #. Using default 64", "red");
+        return 64;
+    }
+    else {
+        return val;
+    }
+}
+int configSystem::getPatchSizeY() {
+    bool ok;
+    int val = CT8->toPlainText().toInt(&ok);
+    if (val < 0 || val > 3000 || !ok) {
+        editF->appendColorMessage("Invalid patch size px #. Using default 64", "red");
+        return 64;
+    }
+    else {
+        return val;
+    }
+}
+int configSystem::getGratingDiff() {
+    bool ok;
+    int val = CT9->toPlainText().toInt(&ok);
+    if (val < 1 || val > 3000 || !ok) {
+        editF->appendColorMessage("Invalid Grating Diff. Using default 40", "red");
+        return 40;
+    }
+    else {
+        return val;
+    }
+}
+int configSystem::getNumTrapsX(){
+    bool ok;
+    int val = TT1->toPlainText().toInt(&ok);
+    if (val < 1 || !ok) {
+        editF->appendColorMessage("Invalid Num Traps X. Using default 5", "red");
+        return 5;
+    }
+    else {
+        return val;
+    }
+}
+int configSystem::getNumTrapsY(){
+    bool ok;
+    int val = TT2->toPlainText().toInt(&ok);
+    if (val < 1 || !ok) {
+        editF->appendColorMessage("Invalid Num Traps Y. Using default 5", "red");
+        return 5;
+    }
+    else {
+        return val;
+    }
+}
+double configSystem::getSpacingX(){
+    bool ok;
+    double val = TT3->toPlainText().toDouble(&ok);
+    if (val < 0.0 || !ok) {
+        editF->appendColorMessage("trap spacing. Using default 250", "red");
+        return 250;
+    }
+    else {
+        return val;
+    }
+}
+double configSystem::getSpacingY(){
+    bool ok;
+    double val = TT4->toPlainText().toDouble(&ok);
+    if (val < 0.0 || !ok) {
+        editF->appendColorMessage("trap spacing. Using default 250", "red");
+        return 250;
+    }
+    else {
+        return val;
+    }
+}
+double configSystem::getRadialShiftX(){
+    bool ok;
+    double val = TT5->toPlainText().toDouble(&ok);
+    if (val < 0.0 || !ok) {
+        editF->appendColorMessage("radial shift invalid. Using default 0", "red");
+        return 0;
+    }
+    else {
+        return val;
+    }
+}
+double configSystem::getRadialShiftY(){
+    bool ok;
+    double val = TT6->toPlainText().toDouble(&ok);
+    if (val < 0.0 || !ok) {
+        editF->appendColorMessage("radial shift invalid. Using default 0", "red");
+        return 0;
+    }
+    else {
+        return val;
+    }
+}
+double configSystem::getAxialShift() {
+    bool ok;
+    double val = TT7->toPlainText().toDouble(&ok);
+    if (val < 0.0 || !ok) {
+        editF->appendColorMessage("axial shift invalid. Using default 0", "red");
+        return 0;
+    }
+    else {
+        return val;
+    }
+}
+int configSystem::getPaddedPixels(){ 
+    bool ok;
+    int val = TT8->toPlainText().toInt(&ok);
+    if (val < 1 || !ok) {
+        editF->appendColorMessage("Invalid padded size. Using default 8192", "red");
+        return 8192;
+    }
+    else {
+        return val;
+    }
+}
+int configSystem::getMaxItterations() {
+    bool ok;
+    int val = TT9->toPlainText().toInt(&ok);
+    if (val < 1 || !ok) {
+        editF->appendColorMessage("Invalid Itterations. Using default 80", "red");
+        return 80;
+    }
+    else {
+        return val;
+    }
+}
+int configSystem::getMaxCameraItterations() {
+    bool ok;
+    int val = TT10->toPlainText().toInt(&ok);
+    if (val < 1 || !ok) {
+        editF->appendColorMessage("Invalid camera Itterations. Using default 25", "red");
+        return 25;
+    }
+    else {
+        return val;
+    }
+}
+int configSystem::getFixedPhaseItterations() {
+    bool ok;
+    int val = TT11->toPlainText().toInt(&ok);
+    if (val < 1 || !ok) {
+        editF->appendColorMessage("Invalid fixed phase Itterations. Using default 80", "red");
+        return 80;
+    }
+    else {
+        return val;
+    }
+}
+double configSystem::getFixedPhaseNonuniformity() {
+    bool ok;
+    double val = TT12->toPlainText().toDouble(&ok);
+    if (val < 0.00|| !ok) {
+        editF->appendColorMessage("Nonuniformity fixed phase percent invalid. Using default 1.5", "red");
+        return 1.5;
+    }
+    else {
+        return val;
+    }
+}
+double configSystem::getMaxNonuniformityPercent() {
+    bool ok;
+    double val = TT13->toPlainText().toDouble(&ok);
+    if (val < 0.00 || !ok) {
+        editF->appendColorMessage("Nonuniformity maximum percent invalid. Using default 0.05", "red");
+        return 0.05;
+    }
+    else {
+        return val;
+    }
+}
+double configSystem::getMaxCameraNonuniformityPercent() {
+    bool ok;
+    double val = TT14->toPlainText().toDouble(&ok);
+    if (val < 0.00 || !ok) {
+        editF->appendColorMessage("Nonuniformity maximum percent invalid. Using default 0.7", "red");
+        return 0.7;
+    }
+    else {
+        return val;
+    }
+}
+double configSystem::getWeight() {
+    bool ok;
+    double val = TT15->toPlainText().toDouble(&ok);
+    if (val < 0.01 || val > 1.0 || !ok) {
+        editF->appendColorMessage("Nonuniformity maximum percent invalid. Using default 0.7", "red");
+        return 0.7;
+    }
+    else {
+        return val;
+    }
+}
+bool configSystem::getCameraFeedback() {
+    if (TT16->isChecked()) {
+        return true;
+    }
+    else { return false; }
+}
+int configSystem::getAxialScanLower(){
+    bool ok;
+    int val = AT1->toPlainText().toInt(&ok);
+    if (!ok) {
+        editF->appendColorMessage("Invalid lower axial scan range. Using default 1500", "red");
+        return 1500;
+    }
+    else {
+        return val;
+    }
+}
+int configSystem::getAxialScanUpper() {
+    bool ok;
+    int val = AT2->toPlainText().toInt(&ok);
+    if (!ok) {
+        editF->appendColorMessage("Invalid upper axial scan range. Using default -1500", "red");
+        return -1500;
+    }
+    else {
+        return val;
+    }
+}
+int configSystem::getAxialScanStepSize() {
+    bool ok;
+    int val = AT3->toPlainText().toInt(&ok);
+    if (!ok) {
+        editF->appendColorMessage("Invalid axial scan stepsize. Using default 50", "red");
+        return 50;
+    }
+    else {
+        return val;
+    }
+}
 
 
 void configSystem::resize(QWidget* parent) {
@@ -167,7 +544,9 @@ void configSystem::resize(QWidget* parent) {
     pointY += newLine;
     //Tweezer
     pointY += sectionBreak;
-    TweezerText->setGeometry(QRect(QPoint(pointX, pointY), QSize(right - left, buttonHeight)));
+    TweezerText->setGeometry(QRect(QPoint(pointX, pointY), QSize(BWidth, buttonHeight)));
+    pointX += (BSpace + BWidth);
+    arrayType->setGeometry(QRect(QPoint(pointX, pointY), QSize(BWidth, buttonHeight)));
     pointY += newLine;
     T1->setGeometry(QRect(QPoint(pointX, pointY), QSize(BWidth, buttonHeight)));
     pointX += (BSpace + BWidth);
@@ -268,7 +647,7 @@ void configSystem::resize(QWidget* parent) {
 
 configSystem::~configSystem() {
     //delete ui;
-    delete configSelection;
+    delete configSelection; delete arrayType;
     delete save;
     delete saveAs;
     delete New;
@@ -284,13 +663,109 @@ configSystem::~configSystem() {
     delete TT9; delete TT10; delete TT11; delete TT12; delete TT13; delete TT14; delete TT15; delete TT16;
 }
 
+
 void configSystem::SAVE() {
-    
+    if (!std::filesystem::exists("configFiles")) {
+        std::filesystem::create_directories("configFiles");
+    }
+    QString current = configSelection->itemText(arrayType->currentIndex());
+    std::string file = current.toLocal8Bit().constData();
+        makeNewFile("configFiles/" + file);//make a whole new file
 }
 
 void configSystem::SAVEAS() {
-
+    if (!std::filesystem::exists("configFiles")) {
+        std::filesystem::create_directories("configFiles");
+    }
+    QString fileName = QFileDialog::getSaveFileName(Parent, "Save File",
+                                                    QString("configFiles"), "Configuration (*.json)");
+    if (fileName.toLocal8Bit().constData() == "") {
+        return;
+    }
+    //QDir path("configFiles");
+    //QStringList files = path.entryList(QDir::Files);
+    //bool newFile = true;
+    //for (const auto& i : files)//check if need to make new file or not
+    //{
+    //    QFileInfo info(fileName);//remove absolute path
+    //    if (i == info.fileName()) {
+    //        saveFile(fileName.toLocal8Bit().constData());//just update the existing file
+    //        newFile = false;
+    //        break;
+    //    }
+    //    if (info.fileName() == "") { newFile = false; break; }
+    //}
+    //if (newFile) {
+        makeNewFile(fileName.toLocal8Bit().constData());//make a whole new file
+        updateConfigSelector();
+    //}
 }
+
+void configSystem::makeNewFile(std::string filename) {
+    std::fstream config_fstream(filename, std::fstream::out);
+    if (!config_fstream.is_open()) {
+        throw std::runtime_error("Could not open config.json");
+    }
+    nlohmann::json file;
+    file["SLM"]["SLM_PX_X"] = 1920;
+    file["SLM"]["SLM_PX_Y"] = 1152;
+    file["SLM"]["SENSOR_SIZE_X_MM"] = 17.6;
+    file["SLM"]["SENSOR_SIZE_Y_MM"] = 10.7;
+    file["SLM"]["MAX_FRAME_RATE"] = 31;
+    file["CAMERA"]["CAMERA_ID"] = "DEV_1AB2280011BE";
+    file["CAMERA"]["CAMERA_MAX_FRAME_RATE"] = 14;
+    file["CAMERA"]["CAMERA_PX_X"] = 2592;
+    file["CAMERA"]["CAMERA_PX_Y"] = 1944;
+    file["CAMERA"]["CAMERA_PX_SIZE_UM"] = 2.2;
+    file["CAMERA"]["EXPOSURE_MODE"] = "manual";
+    file["CAMERA"]["EXPOSURE_TIME_US"] = 400;
+    file["SERIAL"]["PORT_NAME"] = "COM8";
+    file["SERIAL"]["BAUD_RATE"] = 115200;
+    file["OPTICAL_SYSTEM"]["WAVELENGTH_UM"] = getWavelengthUM();
+    file["OPTICAL_SYSTEM"]["FOCAL_LENGTH_MM"] = getFocalLenghtMM();
+    file["OPTICAL_SYSTEM"]["WAIST_UM"] = getWaistUM();
+    file["OPTICAL_SYSTEM"]["BEAM_WAIST_X_MM"] = getBeamWaistX();
+    file["OPTICAL_SYSTEM"]["BEAM_WAIST_Y_MM"] = getBeamWaistY();
+    file["CALIBRATION"]["LUT_PATCH_SIZE_X_PX"] = getLUTPatchSizeX();
+    file["CALIBRATION"]["LUT_PATCH_SIZE_Y_PX"] = getLUTPatchSizeY();
+    file["CALIBRATION"]["HORIZONTAL_OFFSET"] = getHorizontalOffset();
+    file["CALIBRATION"]["FRAME_RATE"] = getFrameRate();
+    file["CALIBRATION"]["GRATING_PERIOD_PX"] = getGratingPeriod();
+    file["CALIBRATION"]["GRATING_MAX"] = getGratingMax();
+    file["CALIBRATION"]["PATCH_SIZE_X_PX"] = getPatchSizeX();
+    file["CALIBRATION"]["PATCH_SIZE_Y_PX"] = getPatchSizeY();
+    file["CALIBRATION"]["GRATING_DIFF"] = getGratingDiff();
+    file["CALIBRATION"]["PD_READOUT_FOLDER"] = "pd_readout";
+    file["CALIBRATION"]["IMAGE_FOLDER"] = "images";
+    file["TWEEZER_ARRAY_GENERATION"]["ARRAY_GEOMETRY"] = arrayType->itemText(arrayType->currentIndex()).toLocal8Bit().constData();
+    file["TWEEZER_ARRAY_GENERATION"]["NUM_TRAPS_X"] = getNumTrapsX();
+    file["TWEEZER_ARRAY_GENERATION"]["NUM_TRAPS_Y"] = getNumTrapsY();
+    file["TWEEZER_ARRAY_GENERATION"]["SPACING_X_UM"] = getSpacingX();
+    file["TWEEZER_ARRAY_GENERATION"]["SPACING_Y_UM"] = getSpacingY();
+    file["TWEEZER_ARRAY_GENERATION"]["RADIAL_SHIFT_X_UM"] = getRadialShiftX();
+    file["TWEEZER_ARRAY_GENERATION"]["RADIAL_SHIFT_Y_UM"] = getRadialShiftY();
+    file["TWEEZER_ARRAY_GENERATION"]["AXIAL_SHIFT_UM"] = getAxialShift();
+    file["TWEEZER_ARRAY_GENERATION"]["NUMBER_OF_PIXELS_PADDED"] = getPaddedPixels();
+    file["TWEEZER_ARRAY_GENERATION"]["MAX_ITERATIONS"] = getMaxItterations();
+    file["TWEEZER_ARRAY_GENERATION"]["MAX_ITERATIONS_CAMERA_FEEDBACK"] = getMaxCameraItterations();
+    file["TWEEZER_ARRAY_GENERATION"]["FIXED_PHASE_LIMIT_ITERATIONS"] = getFixedPhaseItterations();
+    file["TWEEZER_ARRAY_GENERATION"]["FIXED_PHASE_LIMIT_NONUNIFORMITY_PERCENT"] = getFixedPhaseNonuniformity();
+    file["TWEEZER_ARRAY_GENERATION"]["MAX_NONUNIFORMITY_PERCENT"] = getMaxNonuniformityPercent();
+    file["TWEEZER_ARRAY_GENERATION"]["MAX_NONUNIFORMITY_CAMERA_FEEDBACK_PERCENT"] = getMaxCameraNonuniformityPercent();
+    file["TWEEZER_ARRAY_GENERATION"]["WEIGHTING_PARAMETER"] = getWeight();
+    file["TWEEZER_ARRAY_GENERATION"]["CAMERA_FEEDBACK_ENABLED"] = getCameraFeedback();
+    file["TWEEZER_ARRAY_GENERATION"]["LAYER_SEPARATION_UM"] = 50000.0;
+    file["TWEEZER_ARRAY_GENERATION"]["OUTPUT_FOLDER"] = "data";
+    file["TWEEZER_ARRAY_GENERATION"]["SAVE_DATA"] = true;
+    file["TWEEZER_ARRAY_GENERATION"]["RANDOM_SEED"] = 95843670349586;
+    file["TWEEZER_ARRAY_GENERATION"]["AXIAL_SCAN"]["AXIAL_SCAN_RANGE_LOWER_UM"] = getAxialScanLower();
+    file["TWEEZER_ARRAY_GENERATION"]["AXIAL_SCAN"]["AXIAL_SCAN_RANGE_UPPER_UM"] = getAxialScanUpper();
+    file["TWEEZER_ARRAY_GENERATION"]["AXIAL_SCAN"]["AXIAL_SCAN_STEPSIZE_UM"] = getAxialScanStepSize();
+
+    config_fstream << std::setw(4) << file << std::endl;
+    config_fstream.close();
+}
+
 void configSystem::NEW() {
 
 }

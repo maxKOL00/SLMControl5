@@ -5,6 +5,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     ,thread(&edit)
+    ,form(&edit)
 {
    // edit.appendMessage("Initialized Window");
     ui->setupUi(this);
