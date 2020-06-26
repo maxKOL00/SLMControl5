@@ -8,6 +8,7 @@
 #include <filesystem>
 #include "nlohmann/json.hpp"
 #include "statusBox.h"
+#include "parameters.h"
 
 
 class configSystem {
@@ -22,12 +23,15 @@ class configSystem {
         void NEW();
         //void SAVEAS();
         void resize(QWidget* parent);
+        std::string getConfigFile();
+        void setTextBoxes();
+        void changed();
 	private:
         statusBox* editF;
         void makeNewFile(std::string filename);
         void updateConfigSelector();
         double getWavelengthUM();
-        int getFocalLenghtMM();
+        double getFocalLenghtMM();
         double getWaistUM();
         double getBeamWaistX();
         double getBeamWaistY();
@@ -56,9 +60,9 @@ class configSystem {
         double getMaxCameraNonuniformityPercent();
         double getWeight();
         bool getCameraFeedback();
-        int getAxialScanLower();
-        int getAxialScanUpper();
-        int getAxialScanStepSize();
+        double getAxialScanLower();
+        double getAxialScanUpper();
+        double getAxialScanStepSize();
         QPushButton* save;
         QPushButton* saveAs;
         QPushButton* New;

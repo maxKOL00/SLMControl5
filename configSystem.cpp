@@ -1,5 +1,6 @@
 #include "configSystem.h"
 #include <qfiledialog.h>
+#include <Windows.h>
 #include <fstream>
 
 
@@ -36,7 +37,7 @@ void configSystem::initialize(QWidget* parent) {
     Calibrate = new QPushButton("Calibrate", parent);
     GTA = new QPushButton("Generate Tweezers", parent);
 
-    saveInfo = new QLabel("*SLM and Camera Information must be entered manually.", parent);
+    saveInfo = new QLabel("*Enter SLM/Camera Information Manually.", parent);
     OpticalText = new QLabel("Optical System", parent);
     CalibrationText = new QLabel("Calibration", parent);
     TweezerText = new QLabel("Tweezer Array", parent);
@@ -82,6 +83,7 @@ void configSystem::initialize(QWidget* parent) {
     QObject::connect(save, &QPushButton::released, [this]() {SAVE(); });
     QObject::connect(saveAs, &QPushButton::released, [this]() {SAVEAS(); });
     QObject::connect(New, &QPushButton::released, [this]() {NEW(); });
+    QObject::connect(configSelection, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [this]() {changed(); });
     Parent = parent;
 }
 
@@ -96,10 +98,10 @@ double configSystem::getWavelengthUM() {
         return val;
     }
 }
-int configSystem::getFocalLenghtMM() {
+double configSystem::getFocalLenghtMM() {
     bool ok;
-    int val = OT2->toPlainText().toInt(&ok);
-    if (val < 1|| val > 2000 || !ok) {
+    double val = OT2->toPlainText().toDouble(&ok);
+    if (val < 1 || val > 2000 || !ok) {
         editF->appendColorMessage("Focal length not physical. Using default 180", "red");
         return 180;
     }
@@ -410,9 +412,9 @@ bool configSystem::getCameraFeedback() {
     }
     else { return false; }
 }
-int configSystem::getAxialScanLower(){
+double configSystem::getAxialScanLower(){
     bool ok;
-    int val = AT1->toPlainText().toInt(&ok);
+    double val = AT1->toPlainText().toDouble(&ok);
     if (!ok) {
         editF->appendColorMessage("Invalid lower axial scan range. Using default 1500", "red");
         return 1500;
@@ -421,9 +423,9 @@ int configSystem::getAxialScanLower(){
         return val;
     }
 }
-int configSystem::getAxialScanUpper() {
+double configSystem::getAxialScanUpper() {
     bool ok;
-    int val = AT2->toPlainText().toInt(&ok);
+    double val = AT2->toPlainText().toDouble(&ok);
     if (!ok) {
         editF->appendColorMessage("Invalid upper axial scan range. Using default -1500", "red");
         return -1500;
@@ -432,9 +434,9 @@ int configSystem::getAxialScanUpper() {
         return val;
     }
 }
-int configSystem::getAxialScanStepSize() {
+double configSystem::getAxialScanStepSize() {
     bool ok;
-    int val = AT3->toPlainText().toInt(&ok);
+    double val = AT3->toPlainText().toDouble(&ok);
     if (!ok) {
         editF->appendColorMessage("Invalid axial scan stepsize. Using default 50", "red");
         return 50;
@@ -547,6 +549,7 @@ void configSystem::resize(QWidget* parent) {
     TweezerText->setGeometry(QRect(QPoint(pointX, pointY), QSize(BWidth, buttonHeight)));
     pointX += (BSpace + BWidth);
     arrayType->setGeometry(QRect(QPoint(pointX, pointY), QSize(BWidth, buttonHeight)));
+    pointX = left;
     pointY += newLine;
     T1->setGeometry(QRect(QPoint(pointX, pointY), QSize(BWidth, buttonHeight)));
     pointX += (BSpace + BWidth);
@@ -663,12 +666,54 @@ configSystem::~configSystem() {
     delete TT9; delete TT10; delete TT11; delete TT12; delete TT13; delete TT14; delete TT15; delete TT16;
 }
 
+void configSystem::setTextBoxes() {
+    Parameters params(getConfigFile());
+    OT1->setText(QString::fromStdString(std::to_string(params.get_wavelength_um())));
+    OT2->setText(QString::fromStdString(std::to_string(params.get_focal_length_mm())));
+    OT3->setText(QString::fromStdString(std::to_string(params.get_waist_um())));
+    OT4->setText(QString::fromStdString(std::to_string(params.get_beam_waist_x_mm())));
+    OT5->setText(QString::fromStdString(std::to_string(params.get_beam_waist_y_mm())));
+
+    CT1->setText(QString::fromStdString(std::to_string(params.get_lut_patch_size_x_px())));
+    CT2->setText(QString::fromStdString(std::to_string(params.get_lut_patch_size_y_px())));
+    CT3->setText(QString::fromStdString(std::to_string(params.get_horizontal_offset())));
+    CT4->setText(QString::fromStdString(std::to_string(params.get_frame_rate())));
+    CT5->setText(QString::fromStdString(std::to_string(params.get_blazed_grating_max())));
+    CT6->setText(QString::fromStdString(std::to_string(params.get_grating_period_px())));
+    CT7->setText(QString::fromStdString(std::to_string(params.get_patch_size_x_px())));
+    CT8->setText(QString::fromStdString(std::to_string(params.get_patch_size_y_px())));
+    CT9->setText(QString::fromStdString(std::to_string(params.get_grating_diff())));
+
+    TT1->setText(QString::fromStdString(std::to_string(params.get_num_traps_x())));
+    TT2->setText(QString::fromStdString(std::to_string(params.get_num_traps_y())));
+    TT3->setText(QString::fromStdString(std::to_string(params.get_spacing_x_um())));
+    TT4->setText(QString::fromStdString(std::to_string(params.get_spacing_y_um())));
+    TT5->setText(QString::fromStdString(std::to_string(params.get_radial_shift_x_um())));
+    TT6->setText(QString::fromStdString(std::to_string(params.get_radial_shift_y_um())));
+    TT7->setText(QString::fromStdString(std::to_string(params.get_axial_shift_um())));
+    TT8->setText(QString::fromStdString(std::to_string(params.get_number_of_pixels_padded())));
+    TT9->setText(QString::fromStdString(std::to_string(params.get_max_iterations())));
+    TT10->setText(QString::fromStdString(std::to_string(params.get_max_iterations_camera_feedback())));
+    TT11->setText(QString::fromStdString(std::to_string(params.get_fixed_phase_limit_iterations())));
+    TT12->setText(QString::fromStdString(std::to_string(params.get_fixed_phase_limit_nonuniformity_percent())));
+    TT13->setText(QString::fromStdString(std::to_string(params.get_max_nonuniformity_percent())));
+    TT14->setText(QString::fromStdString(std::to_string(params.get_max_nonuniformity_camera_feedback_percent())));
+    TT15->setText(QString::fromStdString(std::to_string(params.get_weighting_parameter())));
+    if (params.get_camera_feedback_enabled()) {
+        TT16->setCheckState(Qt::Checked);
+    }
+    else { TT16->setCheckState(Qt::Unchecked); }
+
+    AT1->setText(QString::fromStdString(std::to_string(params.get_axial_scan_range_lower_um())));
+    AT2->setText(QString::fromStdString(std::to_string(params.get_axial_scan_range_upper_um())));
+    AT3->setText(QString::fromStdString(std::to_string(params.get_axial_scan_stepsize_um())));
+}
 
 void configSystem::SAVE() {
     if (!std::filesystem::exists("configFiles")) {
         std::filesystem::create_directories("configFiles");
     }
-    QString current = configSelection->itemText(arrayType->currentIndex());
+    QString current = configSelection->currentText();
     std::string file = current.toLocal8Bit().constData();
         makeNewFile("configFiles/" + file);//make a whole new file
 }
@@ -767,5 +812,15 @@ void configSystem::makeNewFile(std::string filename) {
 }
 
 void configSystem::NEW() {
+    SAVEAS();//IDK if this will change
+}
 
+void configSystem::changed() {
+    Sleep(500);
+    setTextBoxes();
+}
+
+std::string configSystem::getConfigFile() {
+    QString current = configSelection->currentText();
+    return current.toLocal8Bit().constData();
 }

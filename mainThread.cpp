@@ -45,11 +45,11 @@ void append(statusBox* box, const char* msg, std::string color = "black") {
     box->appendColorMessage(msg, color);
 }//this is just for testing but I left some calls in main thread
 
-int mainThread::run_thread() {
+int mainThread::run_thread(std::string config) {
     try {
         editM->clear();
         setDevice();
-        const auto params = Parameters();
+        const auto params = Parameters(config);
         // define parameters to check their availability early on
         // This could be prevented by checking in params and using
         // default values if nothing is given

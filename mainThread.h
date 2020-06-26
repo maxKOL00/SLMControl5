@@ -22,7 +22,7 @@ class mainThread {
 	public:
 		mainThread::mainThread(statusBox *box);
 		void setDevice();
-		int run_thread();
+		int run_thread(std::string config);
 		void camera_feedback_loop(const Parameters& params, std::unique_ptr<ImageCapture>& ic_ptr,
 								  TweezerArray& tweezer_array, CGHAlgorithm& cgh, const ImageProcessing& ip,
 								  byte* slm_image_ptr,

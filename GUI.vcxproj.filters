@@ -152,5 +152,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="config.json" />
+    <None Include="configFiles\test.json" />
   </ItemGroup>
 </Project>

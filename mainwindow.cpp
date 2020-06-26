@@ -26,7 +26,7 @@ MainWindow::MainWindow(QWidget *parent)
     theory_label->setAlignment(Qt::AlignCenter);
     phase_label->setAlignment(Qt::AlignCenter);
     resize();
-    
+    form.setTextBoxes();
                           // Connect button signal to appropriate slot
     connect(form.getGTA(), SIGNAL(released()), this, SLOT(handleButton()));
     connect(clearStatus, &QPushButton::clicked, this, &MainWindow::handleClearButton);
@@ -87,7 +87,7 @@ void MainWindow::setImages() {
 }
 void MainWindow::handleButton()
 {
-    if (thread.run_thread()) {
+    if (thread.run_thread(form.getConfigFile())) {
         edit.appendColorMessage("Main Thread Exited with Error", "red");
     }
     else {
