@@ -35,7 +35,6 @@
     "GRATING_MAX": 255,
     "PATCH_SIZE_X_PX": 64,
     "PATCH_SIZE_Y_PX": 64,
-    "GRATING_DIFF": 40,
     "PD_READOUT_FOLDER": "pd_readout",
     "IMAGE_FOLDER": "images"
   },

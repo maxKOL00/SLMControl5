@@ -25,7 +25,7 @@ public:
     ~MainWindow();
     void handleClearButton();
     void setImages();
-;
+    void axialPushed();
 
 private slots:
     void handleButton();

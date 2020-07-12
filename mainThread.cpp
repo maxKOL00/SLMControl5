@@ -9,6 +9,7 @@
 
 mainThread::mainThread(statusBox *box) {
     editM = box;
+    windowInit = false;
 }
 
 void mainThread::setDevice() {
@@ -40,10 +41,6 @@ void mainThread::setDevice() {
         editM->appendMessage(("Connected to " + name0).c_str());
     }
 }
-
-void append(statusBox* box, const char* msg, std::string color = "black") {
-    box->appendColorMessage(msg, color);
-}//this is just for testing but I left some calls in main thread
 
 int mainThread::run_thread(std::string config) {
     try {
@@ -187,16 +184,19 @@ int mainThread::run_thread(std::string config) {
         // Init window. The display is mostly stable
         // but it takes some time to open the window so it should be called
         // a few times
-        /*{
-            init_window(slm_px_x, slm_px_y, frame_rate);
-            Sleep(500);
+        if(camera_feedback_enabled){
+            editM->appendMessage("Creating OpenGL Window");
+            if (!windowInit) {
+                init_window(params);
+                windowInit = true;
+            }
             size_t cnt = 0;
             while (cnt < 3) {
                 display_phasemap(slm_image_ptr);
                 Sleep(100);
                 cnt++;
             }
-        }*/
+        }
 
         if (camera_feedback_enabled) {
             camera_feedback_loop(
@@ -389,5 +389,186 @@ void mainThread::camera_feedback_loop(
     else {
         errBox("ic_ptr ia null", __FILE__, __LINE__);
         throw std::runtime_error("ic_ptr is null");
+    }
+}
+
+ 
+int mainThread::axialScan(std::string config) {
+    try {
+        editM->clear();
+        setDevice();
+        const auto params = Parameters(config);
+
+        auto ip = ImageProcessing(params);
+
+        const size_t N_x = params.get_slm_px_x();
+        const size_t N_y = params.get_slm_px_y();
+        const size_t num_px_tot = N_y * N_x;
+
+        const size_t camera_px_x = params.get_camera_px_x();
+        const size_t camera_px_y = params.get_camera_px_y();
+
+        const size_t lut_patch_size_x = params.get_lut_patch_size_x_px();
+        const size_t lut_patch_size_y = params.get_lut_patch_size_y_px();
+        const size_t lut_patch_num_x = params.get_number_of_lut_patches_x();
+        const size_t lut_patch_num_y = params.get_number_of_lut_patches_x();
+
+        const double shift_x_um = params.get_radial_shift_x_um();
+        const double shift_y_um = params.get_radial_shift_y_um();
+
+        const bool save_data = params.get_save_data();
+
+        std::unique_ptr<ImageCapture> ic_ptr;
+        const bool camera_feedback_enabled = params.get_camera_feedback_enabled();
+
+
+        if (camera_feedback_enabled) {
+            editM->appendMessage("Camera feedback enabled");
+            try {
+                ic_ptr = std::make_unique<ImageCapture>(params);
+                // Adjust exposure time automatically after an image is displayed
+                // exposure_time = params.get_exposure_time_us();
+
+            }
+            catch (const ImageCaptureException& e) {
+                std::cout << e.what() << "\n";
+                errBox(e.what(), __FILE__, __LINE__);
+                // It seems that manually calling the params dtor
+                // gives a faster cleanup
+                params.~Parameters();
+
+                //std::cout << "Press any key to close window . . ." << std::endl;
+                //std::cin.get();
+                return EXIT_FAILURE;
+            }
+        }
+
+        byte* slm_image_ptr;
+        byte* phase_correction_ptr;
+        byte* lut_ptr;
+        byte* phasemap_ptr;
+        byte* phasemap_shifted_ptr;
+
+        if (cudaSuccess != cudaMallocManaged(&slm_image_ptr, num_px_tot * sizeof(byte))) {
+            std::cerr << "Could not allocate memory for slm_image_ptr.\n";
+            return EXIT_FAILURE;
+        }
+        if (cudaSuccess != cudaMallocManaged(&lut_ptr, 256 * lut_patch_num_x * lut_patch_num_y * sizeof(byte))) {
+            std::cerr << "Could not allocate memory for lut_ptr.\n";
+            return EXIT_FAILURE;
+        }
+        if (cudaSuccess != cudaMallocManaged(&phase_correction_ptr, num_px_tot * sizeof(byte))) {
+            std::cerr << "Could not allocate memory for phase_correction_ptr.\n";
+            return EXIT_FAILURE;
+        }
+        if (cudaSuccess != cudaMallocManaged(&phasemap_ptr, N_y * N_y * sizeof(byte))) {
+            std::cerr << "Could not allocate memory for phasemap_ptr.\n";
+            return EXIT_FAILURE;
+        }
+        if (cudaSuccess != cudaMallocManaged(&phasemap_shifted_ptr, N_y * N_y * sizeof(byte))) {
+            std::cerr << "Could not allocate memory for phasemap_shifted_ptr.\n";
+            return EXIT_FAILURE;
+        }
+        if (cudaSuccess != cudaDeviceSynchronize()) {
+            std::cerr << "Could not synchronize.\n";
+            return EXIT_FAILURE;
+        }
+
+        basic_fileIO::load_LUT(lut_ptr, lut_patch_num_x, lut_patch_num_y);
+        basic_fileIO::load_phase_correction(phase_correction_ptr, N_x, N_y);
+        if (cudaSuccess != cudaDeviceSynchronize()) {
+            errBox("Could not synchronize", __FILE__, __LINE__);
+            return EXIT_FAILURE;
+        }
+
+
+        editM->appendMessage("Read correction files");
+
+        basic_fileIO::read_from_bmp("data/phase_map.bmp", phasemap_ptr, N_y, N_y);
+
+        if (!windowInit) {
+            init_window(params);
+            windowInit = true;
+        }
+
+        const std::string output_folder = "data/images";
+
+        std::vector<byte> image(camera_px_x * camera_px_y);
+
+        double delta_z_lower_um = params.get_axial_scan_range_lower_um();
+        double delta_z_upper_um = params.get_axial_scan_range_upper_um();
+
+        if (delta_z_lower_um > delta_z_upper_um) {
+            auto temp = delta_z_lower_um;
+            delta_z_lower_um = delta_z_upper_um;
+            delta_z_upper_um = temp;
+        }
+
+        const int increment_um = params.get_axial_scan_stepsize_um();
+
+        const size_t number_of_images = (delta_z_upper_um + abs(delta_z_lower_um)) / increment_um + 1;
+
+
+        size_t cnt = 0;
+        for (double delta_z_um = delta_z_lower_um; delta_z_um < delta_z_upper_um; delta_z_um += increment_um) {
+
+            std::cout << delta_z_um << "\n";
+            std::stringstream s;
+            s << delta_z_um;
+            editM->appendMessage(s.str().c_str());
+            s.str(std::string());
+            memcpy(phasemap_shifted_ptr, phasemap_ptr, N_y * N_y * sizeof(byte));
+
+            ip.fresnel_lens(phasemap_shifted_ptr, N_y, N_y, delta_z_um);
+
+            ip.shift_fourier_image(phasemap_shifted_ptr, shift_x_um, shift_y_um);
+
+            ip.expand_to_sensor_size(slm_image_ptr, phasemap_shifted_ptr);
+
+            ip.add_blazed_grating(slm_image_ptr);
+
+            ip.correct_image(slm_image_ptr, phase_correction_ptr, lut_ptr);
+
+            display_phasemap(slm_image_ptr);
+
+            Sleep(100);
+
+
+
+            if (save_data && camera_feedback_enabled) {
+                ic_ptr->capture_image(image.data(), camera_px_x, camera_px_y);
+
+                std::stringstream ss;
+
+                ss << std::setfill('0') << std::setw(std::streamsize(log10(number_of_images) + 1)) << cnt << ".bmp";
+
+                basic_fileIO::save_as_bmp(
+                    basic_fileIO::create_filepath(ss.str(), output_folder),
+                    image.data(), camera_px_x, camera_px_y
+                );
+            }
+            cnt++;
+        }
+
+
+        std::cout << "Showing image, press Enter key to quit\n";
+        editM->appendColorMessage("Showing image", "green");
+        std::cin.get();
+
+        cudaFree(slm_image_ptr);
+        cudaFree(lut_ptr);
+        cudaFree(phase_correction_ptr);
+        cudaFree(phasemap_ptr);
+        cudaFree(phasemap_shifted_ptr);
+
+        return EXIT_SUCCESS;
+    }
+    catch (const std::exception& e) {
+
+        std::cout << e.what() << "\n";
+        errBox(e.what(), __FILE__, __LINE__);
+        std::cout << "Press any key to close window . . ." << std::endl;
+        std::cin.get();
+        return EXIT_FAILURE;
     }
 }

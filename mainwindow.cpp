@@ -30,6 +30,7 @@ MainWindow::MainWindow(QWidget *parent)
                           // Connect button signal to appropriate slot
     connect(form.getGTA(), SIGNAL(released()), this, SLOT(handleButton()));
     connect(clearStatus, &QPushButton::clicked, this, &MainWindow::handleClearButton);
+    connect(form.getAxial(), &QPushButton::clicked, this, &MainWindow::axialPushed);
     //use this syntax in future ^^
 }
 
@@ -38,7 +39,7 @@ void MainWindow::resizeEvent(QResizeEvent*)
 {
     edit.resize(this);
     resize();
-    form.resize(this);
+    form.resize();
 }
 
 MainWindow::~MainWindow()
@@ -93,6 +94,13 @@ void MainWindow::handleButton()
     else {
         setImages();
     }
+}
+
+void MainWindow::axialPushed() {
+    if (thread.axialScan(form.getConfigFile())) {
+        edit.appendColorMessage("Axial Scan Exited with Error", "red");
+    }
+
 }
 
 void MainWindow::handleClearButton() {

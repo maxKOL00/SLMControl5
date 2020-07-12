@@ -34,7 +34,9 @@ class mainThread {
 			const ImageProcessing& ip,
 			byte* slm_image_ptr, const byte* phasemap_ptr, const byte* phase_correction_ptr, const byte* lut_ptr
 		);
+
+		int axialScan(std::string config);
 	private:
 	statusBox *editM;
-
+	bool windowInit;
 };
